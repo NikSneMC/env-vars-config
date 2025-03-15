@@ -1,5 +1,8 @@
 //! A simple lib for configuring your applications via environment variables
 
+#[doc(hidden)]
+pub extern crate log;
+
 /// Creates new mod with specified environment variables
 /// # Examples
 ///
@@ -55,8 +58,7 @@ macro_rules! env_vars_config {
                             )
                         }
                     } else {
-                        #[cfg(feature = "log")]
-                        log::warn!(
+                        env_vars_config::log::warn!(
                             "Variable `{}` is missing in the env! Using default value `{}`",
                             name,
                             $default_value

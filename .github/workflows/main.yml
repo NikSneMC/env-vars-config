@@ -39,7 +39,6 @@ jobs:
       run: |
         rustup update ${{ matrix.rust }} --no-self-update
         rustup default ${{ matrix.rust }}
-        cargo install cargo-hack
     - run: cargo test --all
 
   rustfmt:

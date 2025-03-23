@@ -11,11 +11,23 @@ pub extern crate log;
 ///
 /// env_vars_config! {
 ///     SERVER_ADDRESS: String = "0.0.0.0:8080",
-///     WORKERS_COUNT: i32 = 32
+///     WORKERS_COUNT: i32 = 32,
 /// }
 ///
 /// assert_eq!(config::SERVER_ADDRESS.as_str(), "0.0.0.0:8080");
 /// assert_eq!(config::WORKERS_COUNT.clone(), 32);
+/// ```
+///
+/// ```
+/// use env_vars_config::env_vars_config;
+/// use std::env;
+///
+/// env_vars_config! {
+///     OTEL_SERVICE_NAME: String = "test-service",
+/// }
+///
+/// assert_eq!(config::OTEL_SERVICE_NAME.as_str(), "test-service");
+/// assert_eq!(env::var("OTEL_SERVICE_NAME").unwrap().as_str(), "test-service");
 /// ```
 /// # Panics
 ///
@@ -24,7 +36,7 @@ pub extern crate log;
 ///
 /// env_vars_config! {
 ///     // incompatible type
-///     ENABLE_REGISTRATION: bool = "false"
+///     ENABLE_REGISTRATION: bool = "false",
 /// }
 /// ```
 #[macro_export]
@@ -47,7 +59,7 @@ macro_rules! env_vars_config {
                 pub static $name: LazyLock<$type> = LazyLock::new(|| {
                     let name = stringify!($name);
 
-                    if let Ok(value) = env::var(name) {
+                    let value = if let Ok(value) = env::var(name) {
                         if let Ok(value) = value.parse::<$type>() {
                             value
                         } else {
@@ -64,7 +76,11 @@ macro_rules! env_vars_config {
                             $default_value
                         );
                         <$type>::from($default_value)
+                    };
+                    unsafe {
+                        env::set_var(name, value.to_string());
                     }
+                    value
                 });
             )*
 

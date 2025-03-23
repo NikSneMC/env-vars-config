@@ -40,7 +40,7 @@ jobs:
         rustup update ${{ matrix.rust }} --no-self-update
         rustup default ${{ matrix.rust }}
         cargo install cargo-hack
-    - run: cargo hack test --feature-powerset --lib
+    - run: cargo test --all
 
   rustfmt:
     name: Rustfmt

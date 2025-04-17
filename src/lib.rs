@@ -137,7 +137,7 @@ macro_rules! env_vars_config {
 macro_rules! set_env_only {
     ($($name:ident),*) => {
         $(
-            env::set_var(stringify!($name), $name.to_string());
+            std::env::set_var(stringify!($name), $name.to_string());
         )*
     };
 }

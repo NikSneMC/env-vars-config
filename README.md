@@ -3,7 +3,7 @@ env-vars-config
 
 A simple lib for configuring your applications via environment variables.
 
-[![Build status](https://img.shields.io/github/actions/workflow/status/NikSneMC/env-vars-config/main.yml?branch=master)](https://github.com/NikSneMC/env-vars-config/actions)
+[![Build status](https://img.shields.io/github/actions/workflow/status/NikSneMC/env-vars-config/ci.yml?branch=master)](https://github.com/NikSneMC/env-vars-config/actions)
 [![Latest version](https://img.shields.io/crates/v/env-vars-config.svg)](https://crates.io/crates/env-vars-config)
 [![Documentation](https://docs.rs/env-vars-config/badge.svg)](https://docs.rs/env-vars-config)
 ![License](https://img.shields.io/crates/l/env-vars-config.svg)
@@ -20,7 +20,7 @@ This version is explicitly tested in CI and may be bumped in any release as need
 
 ```toml
 [dependencies]
-env-vars-config = "0.1"
+env-vars-config = "0.4"
 ```
 
 ```rust

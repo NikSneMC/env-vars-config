@@ -60,11 +60,14 @@ macro_rules! env_vars_config {
                         stringify!(T),
                         get_variable_type(&value)
                     ));
-                    let is_missing = env::var(format!("_{variable_name}_WAS_SET"))
+                    let is_missing = env::var(format!("_{variable_name}_WAS_MISSING"))
                         .unwrap_or("false".to_string())
                         .eq("true");
                     (value, is_missing)
                 } else {
+                    unsafe {
+                        env::set_var(format!("_{variable_name}_WAS_MISSING"), "true");
+                    }
                     (default_value.clone().into(), true)
                 };
 
@@ -134,6 +137,5 @@ macro_rules! env_vars_config {
 macro_rules! set_env_only {
     ($name:ident) => {
         env::set_var(stringify!($name), $name.to_string());
-        env::set_var(format!("_{}_WAS_SET", stringify!($name)), "true");
     };
 }

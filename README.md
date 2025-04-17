@@ -20,7 +20,7 @@ This version is explicitly tested in CI and may be bumped in any release as need
 
 ```toml
 [dependencies]
-env-vars-config = "0.4"
+env-vars-config = "0.5"
 ```
 
 ```rust

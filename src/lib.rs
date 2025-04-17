@@ -111,6 +111,7 @@ macro_rules! env_vars_config {
 }
 
 /// Inits config value and sets it in the runtime environment
+/// Note: uses `std::env::set_var` under the hood.
 /// # Examples
 /// ```
 /// use env_vars_config::{env_vars_config, set_env_only};

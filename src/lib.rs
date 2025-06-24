@@ -10,11 +10,11 @@ pub extern crate log;
 /// use env_vars_config::env_vars_config;
 ///
 /// env_vars_config! {
-///     SERVER_ADDRESS: String = "0.0.0.0:8080",
+///     JWT_SECRET: String = "secret",
 ///     WORKERS_COUNT: i32 = 32,
 /// }
 ///
-/// assert_eq!(config::SERVER_ADDRESS.as_str(), "0.0.0.0:8080");
+/// assert_eq!(config::JWT_SECRET.as_str(), "secret");
 /// assert_eq!(config::WORKERS_COUNT.clone(), 32);
 /// ```
 ///
@@ -32,41 +32,35 @@ pub extern crate log;
 macro_rules! env_vars_config {
     ( $( $name:ident: $type:tt = $default_value:expr ),* $(,)? ) => {
         pub mod config {
-            use std::{
-                any::type_name,
-                env,
-                fmt::Display,
-                str::FromStr,
-                sync::LazyLock,
-            };
+            use super::*;
 
             #[inline]
             fn get_variable_type<T>(_: &T) -> &'static str {
-                type_name::<T>().split("::").last().unwrap()
+                std::any::type_name::<T>().split("::").last().unwrap()
             }
 
             #[inline]
-            fn missing_in_env_warn(variable_name: &str, default_value: impl Display) {
+            fn missing_in_env_warn(variable_name: &str, default_value: impl std::fmt::Display) {
                 $crate::log::warn!(
                     "Variable `{variable_name}` is missing in the env! Using default value `{default_value}`",
                 );
             }
 
             #[inline]
-            fn get_variable_value<T: FromStr>(variable_name: &str, default_value: impl Into<T> + Clone + Display) -> T {
-                let (value, is_missing) = if let Ok(value) = env::var(variable_name) {
+            fn get_variable_value<T: std::str::FromStr>(variable_name: &str, default_value: impl Into<T> + Clone + std::fmt::Display) -> T {
+                let (value, is_missing) = if let Ok(value) = std::env::var(variable_name) {
                     let value = value.parse::<T>().unwrap_or_else(|_| panic!(
                         "Invalid value type for the variable `{variable_name}`! Expected type `{}`, got `{}`.",
                         stringify!(T),
                         get_variable_type(&value)
                     ));
-                    let is_missing = env::var(format!("_{variable_name}_WAS_MISSING"))
+                    let is_missing = std::env::var(format!("_{variable_name}_WAS_MISSING"))
                         .unwrap_or("false".to_string())
                         .eq("true");
                     (value, is_missing)
                 } else {
                     unsafe {
-                        env::set_var(format!("_{variable_name}_WAS_MISSING"), "true");
+                        std::env::set_var(format!("_{variable_name}_WAS_MISSING"), "true");
                     }
                     (default_value.clone().into(), true)
                 };
@@ -80,7 +74,7 @@ macro_rules! env_vars_config {
 
             $(
                 /// Our environment variable. Lazy-evaluated by default
-                pub static $name: LazyLock<$type> = LazyLock::new(|| {
+                pub static $name: std::sync::LazyLock<$type> = std::sync::LazyLock::new(|| {
                     get_variable_value(stringify!($name), $default_value)
                 });
             )*
@@ -88,7 +82,7 @@ macro_rules! env_vars_config {
             /// Inits all environment variables
             pub fn init() {
                 $(
-                    LazyLock::force(&$name);
+                    std::sync::LazyLock::force(&$name);
                 )*
             }
 
@@ -118,7 +112,6 @@ macro_rules! env_vars_config {
 /// # Examples
 /// ```
 /// use env_vars_config::{env_vars_config, set_env_only};
-/// use std::env;
 ///
 /// env_vars_config! {
 ///     OTEL_SERVICE_NAME: String = "test-service",
@@ -131,7 +124,7 @@ macro_rules! env_vars_config {
 ///     set_env_only!(OTEL_SERVICE_NAME);
 /// }
 ///
-/// assert_eq!(env::var("OTEL_SERVICE_NAME").unwrap().as_str(), "test-service");
+/// assert_eq!(std::env::var("OTEL_SERVICE_NAME").unwrap().as_str(), "test-service");
 /// ```
 #[macro_export]
 macro_rules! set_env_only {

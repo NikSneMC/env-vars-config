@@ -24,12 +24,12 @@ env-vars-config = "0.5"
 ```
 
 ```rust
-use std::env;
+use std::{net::SocketAddr, str::FromStr as _};
 
 use env_vars_config::{env_vars_config, set_env_only};
 
 env_vars_config! {
-    SERVER_ADDRESS: String = "0.0.0.0:8080",
+    SERVER_ADDRESS: SocketAddr = SocketAddr::from_str("0.0.0.0:8080").expect("this is a valid SocketAddr"),
     WORKERS_COUNT: i32 = 32,
     OTEL_SERVICE_NAME: String = "test-service",
 }
@@ -37,7 +37,7 @@ env_vars_config! {
 fn main() {
     config::init();
 
-    println!("server address: {}", config::SERVER_ADDRESS.as_str());
+    println!("server address: {}", config::SERVER_ADDRESS.clone());
     println!("workers count: {}", config::WORKERS_COUNT.clone());
     println!("otel service name: {}", config::OTEL_SERVICE_NAME.clone());
 
@@ -48,7 +48,7 @@ fn main() {
 
     println!(
         "otel service name (from env): {}",
-        env::var("OTEL_SERVICE_NAME").unwrap()
+        std::env::var("OTEL_SERVICE_NAME").unwrap()
     );
 
     config::test_values();

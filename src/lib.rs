@@ -11,11 +11,11 @@ pub extern crate log;
 ///
 /// env_vars_config! {
 ///     JWT_SECRET: String = "secret",
-///     WORKERS_COUNT: i32 = 32,
+///     WORKER_COUNT: i32 = 32,
 /// }
 ///
 /// assert_eq!(config::JWT_SECRET.as_str(), "secret");
-/// assert_eq!(config::WORKERS_COUNT.clone(), 32);
+/// assert_eq!(config::WORKER_COUNT.clone(), 32);
 /// ```
 ///
 /// # Panics
@@ -40,34 +40,40 @@ macro_rules! env_vars_config {
             }
 
             #[inline]
-            fn missing_in_env_warn(variable_name: &str, default_value: impl std::fmt::Display) {
-                $crate::log::warn!(
-                    "Variable `{variable_name}` is missing in the env! Using default value `{default_value}`",
-                );
+            fn variable_exists(variable_name: &str) -> bool {
+                std::env::var(variable_name).is_ok() || !std::env::var(format!("_{variable_name}_WAS_MISSING"))
+                        .unwrap_or("false".to_string())
+                        .eq("true")
+            }
+
+            #[inline]
+            fn warn_if_env_var_is_missing(variable_name: &str, default_value: impl std::fmt::Display) -> bool {
+                let variable_exists = variable_exists(variable_name);
+                if !variable_exists {
+                    $crate::log::warn!(
+                        "Variable `{variable_name}` is missing in the env! Using default value `{default_value}`",
+                    );
+                }
+                variable_exists
             }
 
             #[inline]
             fn get_variable_value<T: std::str::FromStr>(variable_name: &str, default_value: impl Into<T> + Clone + std::fmt::Display) -> T {
-                let (value, is_missing) = if let Ok(value) = std::env::var(variable_name) {
+                let value = if let Ok(value) = std::env::var(variable_name) {
                     let value = value.parse::<T>().unwrap_or_else(|_| panic!(
                         "Invalid value type for the variable `{variable_name}`! Expected type `{}`, got `{}`.",
                         stringify!(T),
                         get_variable_type(&value)
                     ));
-                    let is_missing = std::env::var(format!("_{variable_name}_WAS_MISSING"))
-                        .unwrap_or("false".to_string())
-                        .eq("true");
-                    (value, is_missing)
+                    value
                 } else {
                     unsafe {
                         std::env::set_var(format!("_{variable_name}_WAS_MISSING"), "true");
                     }
-                    (default_value.clone().into(), true)
+                    default_value.clone().into()
                 };
 
-                if is_missing {
-                    missing_in_env_warn(&variable_name, &default_value);
-                }
+                warn_if_env_var_is_missing(variable_name, default_value);
 
                 value
             }
@@ -86,22 +92,24 @@ macro_rules! env_vars_config {
                 )*
             }
 
-            /// Tries to get every variable value. Usable when you need
-            pub fn test_values() {
-                $(
-                    get_variable_value::<$type>(stringify!($name), $default_value);
-                )*
+            /// Checks whether all variables are set or not
+            pub fn check_values() -> bool {
+                vec![$(
+                    warn_if_env_var_is_missing(stringify!($name), $default_value)
+                ),*]
+                    .into_iter()
+                    .all(|elem| elem)
             }
 
             /// Updates the environment with variable values
             ///
-            /// Does `set_env_only` under the hood
+            /// Uses `set_env_only` under the hood
             pub fn set_env() {
-                $(
-                    unsafe {
+                unsafe {
+                    $(
                         $crate::set_env_only!($name);
-                    }
-                )*
+                    )*
+                }
             }
         }
     };

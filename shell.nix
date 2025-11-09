@@ -14,7 +14,6 @@
 
   libraries = with pkgs; [
     pkg-config
-    openssl
   ];
 in
   with pkgs;

@@ -1,6 +1,6 @@
 [package]
 name = "env-vars-config"
-version = "0.5.3"
+version = "1.0.0"
 authors = ["NikSne <commits@niksne.ru>"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -17,4 +17,3 @@ edition = "2021"
 
 [dependencies]
 log = "0.4"
-

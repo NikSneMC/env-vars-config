@@ -51,7 +51,7 @@ macro_rules! env_vars_config {
                 let variable_exists = variable_exists(variable_name);
                 if !variable_exists {
                     $crate::log::warn!(
-                        "Variable `{variable_name}` is missing in the env! Using default value `{default_value}`",
+                        "Variable `{variable_name}` is not set! Using default value `{default_value}`",
                     );
                 }
                 variable_exists
